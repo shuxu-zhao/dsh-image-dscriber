@@ -1,0 +1,12 @@
+# Bundle patch for dsh-image-describer (Tool Plugin).
+# Applied as one insert in the profile layer stack after dsh-base.
+# Users can override the defaults below in their profile's cordis.patch.yml.
+- insert:
+    - id: image-describer-tool
+      name: dsh-image-describer
+      inject: [tools, llm, attachments]
+      config:
+        provider: minimax-cn
+        model: MiniMax-M3
+        maxTokens: 2048
+        timeoutMs: 60000
