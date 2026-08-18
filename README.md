@@ -1,12 +1,170 @@
 # dsh-image-describer
 
-为 DeepSeek 等**纯文本 LLM**（如 `deepseek-v4-flash`、`deepseek-v4-pro`）在 [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) 中提供**双模视觉理解能力**的原生 DSH 插件。
+[English](#english) | [中文](#chinese)
 
 ---
 
-## 🌟 双模工作机制详解
+<a id="english"></a>
 
-本插件支持两种完全不同但互补的用图场景：**聊天框直接粘贴图片（附件模式）** 和 **对话中主动调用工具（Tool 模式）**。
+## English
+
+> **Giving text models eyes to see in DeepSeek Harness.**
+
+`dsh-image-describer` is a native plugin for [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) that provides **dual-mode visual understanding capabilities** for text-only LLMs (such as `deepseek-v4-flash`, `deepseek-v4-pro`).
+
+---
+
+### 🌟 Dual-Mode Architecture
+
+The plugin seamlessly supports two complementary visual interaction scenarios: **Direct UI Chat Image Pasting (Attachment Mode)** and **Active File Inspection (Tool Mode)**.
+
+```
+                                    ┌── Scenario 1: Paste image directly in UI ────➔ Automatically transcribes into structured context
+User provides visual input in DSH ──┤
+                                    └── Scenario 2: Mention image file in chat ─────➔ Model actively invokes `describe_image` tool
+```
+
+---
+
+#### Scenario 1: Direct UI Chat Image Pasting (Attachment Mode)
+
+* **User Action**: Direct `Ctrl + V` screenshot paste or drag-and-drop into the chat box.
+* **Workflow**:
+  1. The image enters the session as an `ImageBlock` attachment in the user's message.
+  2. The plugin intercepts the request at the DSH `llm/stream` pipeline.
+  3. The plugin calls the configured multimodal vision model (default `MiniMax-M3`) for OCR and comprehensive visual recognition.
+  4. The plugin replaces the `ImageBlock` with an explicit, structured system prompt:
+     ```text
+     [System Notice: The user uploaded/pasted an image in chat (non-workspace file, fully transcribed by visual model MiniMax-M3). Please answer directly based on the recognition results below, without searching workspace files or calling tools:
+     <Transcribed visual content and OCR text>
+     ]
+     ```
+  5. The text-only model receives clean context and responds immediately without crashing or unnecessary workspace searches.
+
+---
+
+#### Scenario 2: Active Tool Calling on Local Files (Tool Mode)
+
+* **User Action**: Mentioning local image file paths in the conversation, for example:
+  > "Analyze the microservice architecture in `assets/architecture.png`."  
+  > "What is the error code in the bottom-left corner of `Screenshot.png`?"
+* **Workflow**:
+  1. The text model actively invokes the **`describe_image`** tool:
+     ```json
+     {
+       "filePath": "assets/architecture.png",
+       "prompt": "Analyze the service dependencies and data flow in detail."
+     }
+     ```
+  2. The `describe_image` tool reads the local image file, saves it as an attachment, and calls the vision model.
+  3. The vision model analyzes the image according to the model's custom prompt and returns the result.
+  4. The model uses the structured tool result to answer the user's question.
+  5. The tool call arguments and result are visible in the Web UI tool card.
+
+---
+
+### 🛠️ Prerequisite: Enable Image Modality for Text Models
+
+The DSH Web UI and API gateway check whether the current model declares `image` input modality. To allow pasting images in UI and reading files, declare `input: [text, image]` in `~/.dsh/settings.yaml`:
+
+```yaml
+llm-pi-ai:
+  providers:
+    minimax-cn:
+      apiKeyEnv: MINIMAX_CN_API_KEY
+    opencode-go:
+      apiKeyEnv: OPENCODE_GO_API_KEY
+      modelOverrides:                 # Override built-in models
+        deepseek-v4-flash:
+          input: [text, image]
+        deepseek-v4-pro:
+          input: [text, image]
+    opencode-go2:
+      apiKeyEnv: OPENCODE_GO2_API_KEY
+      api: openai-completions
+      baseURL: https://opencode.ai/zen/go/v1
+      models:
+        - id: deepseek-v4-flash
+          input: [text, image]
+        - id: deepseek-v4-pro
+          input: [text, image]
+```
+
+---
+
+### 📦 Installation
+
+#### 1. Build
+```bash
+pnpm install
+pnpm run build   # tsc builds to lib/
+```
+
+#### 2. Link to DSH Web Profile
+```bash
+# Add this plugin to web profile
+npx @deepseek-ai/dsh plugin --profile web add ./dsh-image-describer
+
+# Start DSH Web
+dsh web --profile web
+```
+
+#### 3. Uninstall (if needed)
+```bash
+npx @deepseek-ai/dsh plugin --profile web remove dsh-image-describer
+```
+
+---
+
+### ⚙️ Configuration
+
+Configure the plugin in your profile's `cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: image-describer-tool
+      name: dsh-image-describer
+      inject: [tools, llm, attachments]
+      config:
+        provider: minimax-cn       # Multimodal provider route
+        model: MiniMax-M3          # Vision model ID (must support image input)
+        maxTokens: 2048            # Max output tokens per description
+        timeoutMs: 60000           # Timeout in milliseconds
+```
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `provider` | `string` | `minimax-cn` | Vision model provider route (configure API key in `settings.yaml`) |
+| `model` | `string` | `MiniMax-M3` | Vision model ID (must support image input) |
+| `prompt` | `string` | Chinese detailed prompt | Default prompt used when caller doesn't specify a specific question |
+| `maxTokens` | `number` | `2048` | Max output tokens per analysis |
+| `timeoutMs` | `number` | `60000` | Analysis timeout in milliseconds |
+
+---
+
+### 👨‍💻 Local Development
+
+```bash
+pnpm run clean   # Clean lib/ output
+pnpm run build   # Compile TypeScript
+```
+
+---
+---
+
+<a id="chinese"></a>
+
+## 中文
+
+> **让纯文本模型也能“看见”世界。**
+
+`dsh-image-describer` 是专为 [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) 打造的原生插件，为 DeepSeek 等**纯文本 LLM**（如 `deepseek-v4-flash`、`deepseek-v4-pro`）提供**双模视觉理解能力**。
+
+---
+
+### 🌟 双模工作机制详解
+
+本插件支持两种互补的视觉交互场景：**聊天框直接粘贴图片（附件模式）** 和 **对话中主动调用工具（Tool 模式）**。
 
 ```
                                     ┌── 场景 1: UI 聊天框直接粘贴图片 ──➔ 自动转写为【结构化上下文】秒出回答
@@ -16,7 +174,7 @@
 
 ---
 
-### 场景一：聊天框直接粘贴图片（会话附件模式）
+#### 场景一：聊天框直接粘贴图片（会话附件模式）
 
 * **用户操作**：在 Web UI 聊天输入框直接 **`Ctrl + V` 粘贴屏幕截图**，或**把图片拖入输入框**发送。
 * **底层运行流程**：
@@ -33,7 +191,7 @@
 
 ---
 
-### 场景二：对话中提及图片文件（主动 Tool Call 模式）
+#### 场景二：对话中提及图片文件（主动 Tool Call 模式）
 
 * **用户操作**：在对话中发送工作区内的图片路径或让模型查看某个文件，例如：
   > “帮我分析一下项目里的 `assets/architecture.png` 架构图。”  
@@ -49,11 +207,11 @@
   2. `describe_image` 工具读取工作区本地文件，提交给多模态视觉模型进行针对性分析。
   3. 工具将识别结果作为结构化结果（Tool Result）返回给模型。
   4. 模型基于工具返回的分析结果，结合上下文完成推理并给出回答。
-  5. **调用过程与参数在 Web UI 的工具卡片中完全透明可见**。
+  5. 调用过程与参数在 Web UI 的工具卡片中完全透明可见。
 
 ---
 
-## 🛠️ 前置准备：开启纯文本模型的图片通道
+### 🛠️ 前置准备：开启纯文本模型的图片通道
 
 DeepSeek Harness 的 Web UI 和 API 网关会在最外层检查模型是否声明了 `image` 模态。为了让前端允许粘贴图片、文件工具允许读图，需要在全局配置文件 `~/.dsh/settings.yaml` 中为你使用的纯文本模型开启声明：
 
@@ -82,15 +240,15 @@ llm-pi-ai:
 
 ---
 
-## 📦 安装与挂载
+### 📦 安装与挂载
 
-### 1. 编译构建
+#### 1. 编译构建
 ```bash
 pnpm install
 pnpm run build   # tsc 编译输出到 lib/ 目录
 ```
 
-### 2. 挂载到 DSH Web Profile
+#### 2. 挂载到 DSH Web Profile
 ```bash
 # 将本插件软链接安装到 DSH web profile
 npx @deepseek-ai/dsh plugin --profile web add ./dsh-image-describer
@@ -99,16 +257,28 @@ npx @deepseek-ai/dsh plugin --profile web add ./dsh-image-describer
 dsh web --profile web
 ```
 
-### 3. 卸载插件（如需）
+#### 3. 卸载插件（如需）
 ```bash
 npx @deepseek-ai/dsh plugin --profile web remove dsh-image-describer
 ```
 
 ---
 
-## ⚙️ 配置项说明
+### ⚙️ 配置项说明
 
-插件支持在 **Settings → Plugins → image-describer** 中可视化配置，修改后实时生效。
+在 Profile 的 `cordis.patch.yml` 中进行声明或覆盖：
+
+```yaml
+- insert:
+    - id: image-describer-tool
+      name: dsh-image-describer
+      inject: [tools, llm, attachments]
+      config:
+        provider: minimax-cn       # 多模态提供方路由
+        model: MiniMax-M3          # 视觉模型 ID（必须支持图片输入）
+        maxTokens: 2048            # 单次图片分析的最大 Token 上限
+        timeoutMs: 60000           # 单次图片分析超时时间（毫秒）
+```
 
 | 配置字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
@@ -118,60 +288,17 @@ npx @deepseek-ai/dsh plugin --profile web remove dsh-image-describer
 | `maxTokens` | `number` | `2048` | 单次图片分析的最大输出 Token 上限 |
 | `timeoutMs` | `number` | `60000` | 单次图片分析的超时时间（毫秒） |
 
-也可以在 Profile 的 `cordis.patch.yml` 中进行声明或覆盖：
-
-```yaml
-- id: image-describer-tool
-  name: dsh-image-describer
-  inject: [tools, llm, attachments]
-  config:
-    provider: minimax-cn
-    model: MiniMax-M3
-    maxTokens: 2048
-    timeoutMs: 60000
-```
-
 ---
 
-## 🏗️ 架构流向图
-
-```
-【用户发送请求】
-   │
-   ├─► 场景 1：在 UI 输入框直接粘贴图片（Ctrl+V / 拖拽）
-   │      │
-   │      ▼
-   │   [llm/stream 流水线拦截]
-   │      │
-   │      ├─► 调用 MiniMax-M3 视觉识别
-   │      └─► 将 ImageBlock 转换为【明确带有系统裁决的结构化提示词】
-   │      │
-   │      ▼
-   │   DeepSeek 接收文本提示词 ──► 秒出精准回答（无多余搜索、无工具调用）
-   │
-   └─► 场景 2：在聊天中提及本地图片文件（如 assets/error.png）
-          │
-          ▼
-       DeepSeek 思考链主动发起 Tool Call ──► describe_image(filePath, prompt?)
-          │
-          ├─► 插件读取本地图片文件
-          ├─► 存入 DSH attachment 附件服务
-          ├─► 携带定制 prompt 请求多模态视觉模型
-          └─► 返回结构化分析结果 (Tool Result)
-          │
-          ▼
-       DeepSeek 结合工具返回结果 ──► 生成最终分析答复
-```
-
----
-
-## 👨‍💻 本地开发
+### 👨‍💻 本地开发
 
 ```bash
 pnpm run clean   # 清空 lib/ 产物
 pnpm run build   # 重新编译 TypeScript 源码
 ```
 
-## 📄 开源许可证
+---
+
+## 📄 开源许可证 / License
 
 MIT License
