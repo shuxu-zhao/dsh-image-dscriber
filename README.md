@@ -1,6 +1,12 @@
-# dsh-image-describer
-
-[English](#english) | [中文](#chinese)
+<div align="center">
+  <img src="assets/logo.jpg" alt="dsh-image-describer logo" width="180" style="border-radius: 24px;" />
+  <h1>dsh-image-describer</h1>
+  <p><strong>Giving text models eyes to see in DeepSeek Harness.</strong></p>
+  <p>让纯文本模型也能“看见”世界。</p>
+  <p>
+    <a href="#english">English</a> | <a href="#chinese">中文</a>
+  </p>
+</div>
 
 ---
 
