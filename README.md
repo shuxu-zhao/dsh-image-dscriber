@@ -1,17 +1,9 @@
 <div align="center">
 
-  <br />
-  <img src="assets/logo.jpg" alt="dsh-image-describer logo" width="160" style="border-radius: 28px; box-shadow: 0 10px 30px rgba(0, 180, 255, 0.2);" />
+  <img src="assets/hero-banner.jpg" alt="dsh-image-describer hero banner" width="100%" style="border-radius: 14px; max-width: 840px;" />
   
   <br />
   <br />
-
-  <h1>🐋 dsh-image-describer</h1>
-
-  <p>
-    <strong>Giving text models eyes to see in DeepSeek Harness.</strong><br />
-    让 DeepSeek 等纯文本大模型拥有“视觉感知”能力的双模原生插件
-  </p>
 
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" /></a>
