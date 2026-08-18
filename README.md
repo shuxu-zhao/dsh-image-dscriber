@@ -1,11 +1,31 @@
 <div align="center">
-  <img src="assets/logo.jpg" alt="dsh-image-describer logo" width="180" style="border-radius: 24px;" />
-  <h1>dsh-image-describer</h1>
-  <p><strong>Giving text models eyes to see in DeepSeek Harness.</strong></p>
-  <p>让纯文本模型也能“看见”世界。</p>
+
+  <br />
+  <img src="assets/logo.jpg" alt="dsh-image-describer logo" width="160" style="border-radius: 28px; box-shadow: 0 10px 30px rgba(0, 180, 255, 0.2);" />
+  
+  <br />
+  <br />
+
+  <h1>🐋 dsh-image-describer</h1>
+
   <p>
-    <a href="#english">English</a> | <a href="#chinese">中文</a>
+    <strong>Giving text models eyes to see in DeepSeek Harness.</strong><br />
+    让 DeepSeek 等纯文本大模型拥有“视觉感知”能力的双模原生插件
   </p>
+
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.4-3178C6.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+    <a href="https://deepseek-harness.github.io/deepseek-harness/"><img src="https://img.shields.io/badge/DeepSeek_Harness-Native_Plugin-0066FF.svg?style=flat-square" alt="DeepSeek Harness" /></a>
+    <a href="https://github.com/shuxu-zhao/dsh-image-dscriber/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome" /></a>
+  </p>
+
+  <p>
+    <a href="#english"><b>📖 English Docs</b></a> &nbsp;•&nbsp; <a href="#chinese"><b>📖 中文文档</b></a>
+  </p>
+
+  <br />
+
 </div>
 
 ---
